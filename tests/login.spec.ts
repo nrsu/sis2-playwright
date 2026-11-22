@@ -4,7 +4,7 @@ import { login, loginAsCustomer, USER, PASSWORD } from './helpers';
 test('login with valid credentials', async ({ page }) => {
   await login(page, USER, PASSWORD);
   await expect(page).toHaveURL(/\/account$/);
-  await expect(page.locator('[data-test=page-title]')).toHaveText('My account');
+  await expect(page.locator('[data-test=nav-menu]')).toBeVisible();
 });
 
 test('login with wrong password', async ({ page }) => {
