@@ -9,6 +9,7 @@ export default defineConfig({
   forbidOnly: isCI, // a forgotten test.only fails CI
   retries: isCI ? 2 : 0, // a flaky test is marked flaky, not red
   workers: isCI ? 2 : undefined, // GitHub runners have 2-4 vCPUs
+  expect: { timeout: 15_000 }, // the demo site is slow from CI runners
   reporter: isCI
     ? [
         ['list'],
