@@ -9,28 +9,39 @@ test('catalog shows products', async ({ page }) => {
 
 test('sort by price low to high', async ({ page }) => {
   await page.goto('/');
-  const responded = page.waitForResponse((r) => r.url().includes('sort=price'));
+  await expect(page.locator('.card').first()).toBeVisible();
   await page.locator('[data-test=sort]').selectOption('price,asc');
-  await responded;
-  await expect(page.locator('[data-test=product-price]').first()).toBeVisible();
-  const prices = (await page.locator('[data-test=product-price]').allInnerTexts()).map(money);
-  expect(prices.length).toBeGreaterThan(1);
-  expect(prices).toEqual([...prices].sort((a, b) => a - b));
+  // poll until the list is re-rendered in ascending order
+  await expect
+    .poll(async () => {
+      const prices = (await page.locator('[data-test=product-price]').allInnerTexts()).map(money);
+      return prices.length > 1 && prices.every((p, i) => i === 0 || prices[i - 1] <= p);
+    })
+    .toBe(true);
 });
 
 test('sort by name A-Z', async ({ page }) => {
   await page.goto('/');
-  const responded = page.waitForResponse((r) => r.url().includes('sort=name'));
+  await expect(page.locator('.card').first()).toBeVisible();
   await page.locator('[data-test=sort]').selectOption('name,asc');
-  await responded;
-  await expect(page.locator('[data-test=product-name]').first()).toBeVisible();
-  const names = (await page.locator('[data-test=product-name]').allInnerTexts()).map((n) => n.trim());
-  const sorted = [...names].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
-  expect(names).toEqual(sorted);
+  await expect
+    .poll(async () => {
+      const names = (await page.locator('[data-test=product-name]').allInnerTexts()).map((n) =>
+        n.trim().toLowerCase(),
+      );
+      return names.length > 1 && names.every((n, i) => i === 0 || names[i - 1] <= n);
+    })
+    .toBe(true);
 });
 
 test('pagination: next page', async ({ page }) => {
   await page.goto('/');
-  await page.locator('a[aria-label*=Next]').first().click();
-  await expect(page.locator('.card').first()).toBeVisible();
+  const firstName = page.locator('[data-test=product-name]').first();
+  await expect(firstName).toBeVisible();
+  const before = (await firstName.innerText()).trim();
+  await page
+    .getByRole('link', { name: /^(next|2|»)/i })
+    .first()
+    .click();
+  await expect(firstName).not.toHaveText(before);
 });
