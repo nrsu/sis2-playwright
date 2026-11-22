@@ -40,7 +40,8 @@ test('pagination: next page', async ({ page }) => {
   await expect(firstName).toBeVisible();
   const before = (await firstName.innerText()).trim();
   await page
-    .getByRole('link', { name: /^(next|2|»)/i })
+    .locator('[class*=pagination] a, [class*=pagination] button')
+    .filter({ hasText: /^\s*(2|next|»|›)/i })
     .first()
     .click();
   await expect(firstName).not.toHaveText(before);
